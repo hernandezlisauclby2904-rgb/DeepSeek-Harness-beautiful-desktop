@@ -1,6 +1,6 @@
 <div align="center">
 
-# DeepSeek Harness · beautifui desktop
+# DeepSeek Harness · beautiful desktop
 
 基于 DeepSeek Harness 的个性化界面设计项目，围绕沉浸式 AI 工作体验进行视觉重构。融合冰雪星空背景、毛玻璃 UI、极简工作区与 AI 助手元素，在保留原有功能逻辑的基础上，打造更具个性与沉浸感的 AI Agent 桌面界面。
 
