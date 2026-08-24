@@ -1,0 +1,66 @@
+{
+  "name": "dsh-desktop-app",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness Desktop App - 双击即用 AI 工作区",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win && node scripts/verify-build.js && node scripts/postbuild-icon.js",
+    "build:portable": "electron-builder --win portable && node scripts/verify-build.js && node scripts/postbuild-icon.js"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.deepseek.harness.desktop",
+    "productName": "DeepSeek Harness",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/whale-blue.ico",
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeepSeek Harness",
+      "installerSidebar": "resources/installer-sidebar.bmp",
+      "installerIcon": "resources/whale-blue.ico",
+      "uninstallerIcon": "resources/whale-blue.ico",
+      "include": "scripts/installer.nsh"
+    },
+    "portable": {
+      "artifactName": "AI-Workspace-Portable.exe"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "scripts/**/*",
+      "assets/**/*",
+      "resources/**/*"
+    ]
+  },
+  "allowScripts": {}
+}

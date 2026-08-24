@@ -1,0 +1,20 @@
+{
+  "name": "dsh-glass-workspace",
+  "version": "0.1.0",
+  "description": "Personal glassmorphism workspace theme layer for DeepSeek Harness — background image, translucent panels and token overrides. Official packages are never modified.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": { "default": "./lib/index.js" },
+    "./client": { "default": "./lib/client.js" },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "license": "MIT",
+  "private": true
+}

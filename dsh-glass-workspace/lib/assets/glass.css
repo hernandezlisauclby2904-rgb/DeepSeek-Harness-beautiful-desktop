@@ -1,0 +1,514 @@
+﻿/* dsh-glass-workspace 样式层 v4 — Background First
+ * 核心原则：背景直出 > UI 悬浮 · 只在控件上使用透明 · 绝不给背景蒙白色层
+ */
+
+/* ============================================================
+ * 0. 自定义无边框标题栏
+ * ==========================================================*/
+/* 顶部渐变模糊层：纯垂直方向, 顶部轻微柔化往下渐隐
+ * v6: 从上到下渐变, 顶部最模糊但整体克制, 不改变背景图本身,
+ *     只做衔接柔化, 让顶部与主背景自然过渡 */
+.glass-titlebar-blur {
+  position: fixed;
+  top: 0;
+  left: 280px;
+  right: 0;
+  height: 180px;
+  z-index: 9998;
+  pointer-events: none;
+  /* 垂直方向: 顶部 alpha 0.18, 往下快速衰减到透明 */
+  background: linear-gradient(
+    180deg,
+    rgba(238, 247, 255, 0.18) 0%,
+    rgba(238, 247, 255, 0.12) 30%,
+    rgba(238, 247, 255, 0.06) 60%,
+    rgba(238, 247, 255, 0.00) 100%
+  );
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 标题栏：透明，只放按钮 */
+.glass-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  -webkit-app-region: drag;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.glass-titlebar.glass-titlebar--hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.glass-titlebar__btn {
+  width: 46px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
+  transition: background 0.2s ease, color 0.2s ease;
+  outline: none;
+}
+.glass-titlebar__btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 1);
+}
+.glass-titlebar__btn--close:hover {
+  background: rgba(232, 17, 35, 0.9);
+  color: #fff;
+}
+
+/* 全屏时隐藏渐变模糊层，但保留标题栏按钮 */
+html[data-glass-immersive="on"] .glass-titlebar-blur {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
+ * 1. 背景图层 — 原图直出，不加白色遮罩
+ * ==========================================================*/
+html[data-glass-bg="on"] body {
+  background: transparent;
+}
+
+/* 背景图：原图直出 + 半透明白色罩调浅（不修改原图文件）
+ * 罩层强度随 --glass-overlay 配置(默认 0.35): 让深色背景明显变浅,
+ * 与顶部渐变层/侧边栏浅色衔接自然, 消除顶部与主背景的色彩差异 */
+html[data-glass-bg="on"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--glass-bg-image) center / cover no-repeat fixed;
+  filter: none;
+  pointer-events: none;
+}
+html[data-glass-bg="on"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(244, 250, 255, var(--glass-overlay, 0.22));
+  pointer-events: none;
+}
+
+/* 不再使用 body::after 白色遮罩！背景原图直接展示 */
+/* —— 例外: 加载阶段的白色幕布(1秒后淡出) 见下方「沉浸式淡入」段 —— */
+
+/* ============================================================
+ * 加载页门卫: 由 index.js bootHtml 注入的 JS 覆盖层负责
+ * (白底 + HARNESS + 鲸鱼 + 加载状态文案;
+ *  跟随实际加载完成 — 最短显示 1.5s, 加载多久显示多久, 超时/失败显示失败页)
+ * CSS 只负责: html 深蓝兜底(窗口缩放/边缘不露白) + 海洋背景直接就绪
+ * ==========================================================*/
+html {
+  background: #0a1628;
+}
+/* 背景图: 加载期间被门卫覆盖层盖住, 覆盖层移除瞬间完整呈现 (无渐变动画) */
+html[data-glass-bg="on"] body::before {
+  opacity: 1;
+}
+
+/* ============================================================
+ * 2. Token 覆盖层 — 只影响 UI 控件，不影响背景
+ * ==========================================================*/
+html[data-glass-bg="on"] body {
+  /* 底色 — 极低透明度，几乎不遮挡背景 */
+  --dsw-alias-bg-base: rgba(235, 245, 255, 0.15);
+  --dsw-alias-bg-layer-1: rgba(240, 248, 255, 0.10);
+  --dsw-alias-bg-layer-2: rgba(250, 252, 255, 0.08);
+  --dsw-alias-bg-layer-3: rgba(252, 254, 255, 0.12);
+  --dsw-alias-bg-overlay: rgba(255, 255, 255, 0.08);
+  --dsw-alias-bg-mask-1: rgba(255, 255, 255, 0.05);
+  --dsw-alias-bg-mask-2: rgba(255, 255, 255, 0.08);
+  --dsw-alias-bg-module-platform: rgba(255, 255, 255, 0.10);
+  /* 边框 */
+  --dsw-alias-border-l1: rgba(180, 210, 235, 0.15);
+  --dsw-alias-border-l2: rgba(160, 195, 225, 0.22);
+  --dsw-alias-border-l3: rgba(140, 180, 215, 0.30);
+  /* 文字 — 保持清晰可读 */
+  --dsw-alias-label-primary: rgba(35, 65, 125, 0.96);
+  --dsw-alias-label-secondary: rgba(55, 85, 145, 0.90);
+  --dsw-alias-label-tertiary: rgba(95, 125, 175, 0.85);
+  /* 品牌色 */
+  --dsw-alias-brand-primary: rgba(45, 85, 160, 1);
+  --dsw-alias-button-primary-fill: rgba(45, 85, 160, 1);
+  --dsw-alias-button-primary-hover: rgba(65, 105, 180, 1);
+  --dsw-alias-interactive-bg-hover: rgba(160, 195, 225, 0.12);
+  --dsw-alias-interactive-bg-active: rgba(160, 195, 225, 0.20);
+  /* 浮层 */
+  --dsw-alias-tooltip-bg: rgba(35, 65, 125, 0.92);
+  --dsw-alias-toast-bg: rgba(35, 65, 125, 0.92);
+  /* 侧栏 — 背景半透明，但不影响内容 */
+  --dsw-specific-sidebar-fill: rgba(225, 238, 252, var(--glass-sidebar-alpha, 0.55));
+}
+
+html[data-glass-bg="on"] body[data-ds-dark-theme] {
+  --dsw-alias-bg-base: rgba(10, 18, 30, 0.15);
+  --dsw-alias-bg-layer-1: rgba(15, 25, 40, 0.10);
+  --dsw-alias-bg-layer-2: rgba(20, 30, 50, 0.08);
+  --dsw-alias-bg-layer-3: rgba(25, 35, 55, 0.12);
+  --dsw-alias-bg-overlay: rgba(0, 0, 0, 0.08);
+  --dsw-alias-border-l1: rgba(90, 120, 160, 0.20);
+  --dsw-alias-border-l2: rgba(90, 120, 160, 0.30);
+  --dsw-alias-border-l3: rgba(100, 130, 170, 0.40);
+  --dsw-alias-label-primary: rgba(226, 238, 250, 0.96);
+  --dsw-alias-label-secondary: rgba(190, 208, 228, 0.90);
+  --dsw-alias-label-tertiary: rgba(150, 170, 195, 0.85);
+  --dsw-specific-sidebar-fill: rgba(15, 25, 45, var(--glass-sidebar-alpha, 0.50));
+}
+
+/* ============================================================
+ * 3. 布局结构 — 主区域完全透明，让背景直出
+ * ==========================================================*/
+
+/* 所有主容器透明 */
+html[data-glass-bg="on"] [class*="_frame"],
+html[data-glass-bg="on"] [class*="_centerCol"],
+html[data-glass-bg="on"] [class*="_detailsCol"],
+html[data-glass-bg="on"] [class*="_root_"] {
+  background: transparent !important;
+}
+
+/* 顶部预留空间给自定义标题栏 */
+html:not([data-glass-immersive="on"]) [class*="_frame"] {
+  padding-top: 32px !important;
+}
+
+/* 侧边栏顶到窗口最顶(不留窄缝): 负 margin 让背景上移 32px,
+ * height 用视口单位(不依赖父元素百分比基准), box-sizing 保证 padding 不撑高,
+ * 内部 padding 让内容避开标题栏 —— 拖拽/按钮功能不受影响 */
+html:not([data-glass-immersive="on"]) [class*="_sidebarCol"] {
+  margin-top: -32px !important;
+  height: 100vh !important;
+  box-sizing: border-box !important;
+  padding-top: 32px !important;
+}
+
+/* 中心列/详情列的头部区域一律透明, 保证顶部白条不再出现 (所有视图) */
+html[data-glass-bg="on"] [class*="_centerCol"] [class*="_header"],
+html[data-glass-bg="on"] [class*="_centerCol"] [class*="_topbar"],
+html[data-glass-bg="on"] [class*="_centerCol"] [class*="_titlebar"],
+html[data-glass-bg="on"] [class*="_detailsCol"] [class*="_header"],
+html[data-glass-bg="on"] [class*="_frame"] [class*="_header" i] {
+  background: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* ============================================================
+ * 3a. 侧栏 — 背景半透明，内容保持清晰
+ * ==========================================================*/
+html[data-glass-bg="on"] [class*="_sidebarCol"] {
+  position: relative;
+  background: var(--dsw-specific-sidebar-fill, rgba(225, 238, 252, 0.55));
+  border-right: none;
+  transition: background 0.3s ease;
+}
+/* 毛玻璃效果移到伪元素上：伪元素不构成 fixed 后代的包含块，
+ * 避免设置弹窗(position:fixed)被 280px 宽的侧栏困住导致内容被挤压竖排 */
+html[data-glass-bg="on"] [class*="_sidebarCol"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-glass-bg="on"] [class*="_sidebarCol"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Logo — 保持清晰，不降低透明度 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_logo" i],
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_brand" i] {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+/* 品牌区 — 高实底卡片, 消除"透明背景透出背景图 + 深蓝细字"造成的模糊感
+ * v5: 实底提升到 0.96, 让 DeepSeek/Harness 文字与左上角按钮更清晰 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_logoRow"] {
+  background: #ffffff !important;
+  border: 1px solid rgba(180, 210, 235, 0.28);
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(45, 85, 160, 0.08);
+}
+/* 品牌文字/图标: 加深加粗, 保证在浅色卡片上清晰锐利 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_brand"] {
+  color: #394575 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* 品牌徽标内部的 HARNESS 反白文字必须保持白色，避免随 currentColor 变蓝。 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_brand"] {
+  --dsw-alias-label-primary-inverted: #ffffff;
+}
+
+/* 侧栏内所有文字和图标保持正常不透明度 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_sectionTitle"],
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_workspaceTitle"] {
+  opacity: 1;
+  font-weight: 600;
+  color: rgba(35, 65, 125, 0.95);
+}
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_empty"],
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_placeholder"] {
+  opacity: 0.6;
+  font-weight: 400;
+}
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_settings"],
+html[data-glass-bg="on"] [class*="_sidebarCol"] [class*="_footer"] {
+  opacity: 0.85;
+}
+
+/* 新会话按钮 */
+html[data-glass-bg="on"] [class*="_newSession"] {
+  background: rgba(245, 250, 255, 0.50) !important;
+  border: 1px solid rgba(180, 210, 235, 0.30);
+  border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(45, 85, 160, 0.08);
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-glass-bg="on"] [class*="_newSession"]:hover {
+  background: rgba(250, 252, 255, 0.70) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(45, 85, 160, 0.12);
+}
+
+/* 侧栏图标 — 清晰深蓝色线性风格 */
+html[data-glass-bg="on"] [class*="_iconButton"] {
+  border-radius: 8px;
+  opacity: 0.85;
+  color: rgba(45, 85, 160, 0.85);
+  transition: background 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+}
+html[data-glass-bg="on"] [class*="_iconButton"]:hover {
+  opacity: 1;
+  color: rgba(45, 85, 160, 1);
+  background: rgba(180, 210, 235, 0.18);
+}
+
+/* 会话列表选中态 */
+html[data-glass-bg="on"] [class*="_listArea"] [aria-selected="true"],
+html[data-glass-bg="on"] [class*="_listArea"] [data-state="selected"],
+html[data-glass-bg="on"] [class*="_treeBody"] [aria-current="true"] {
+  background: rgba(160, 195, 225, 0.22) !important;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 180, 215, 0.25);
+}
+
+/* ============================================================
+ * 3b. 中央标题 — 浮在背景上，不加背景框
+ * ==========================================================*/
+html[data-glass-bg="on"] [class*="_headlineText"] {
+  color: rgba(25, 50, 100, 0.98);
+  text-shadow: none;
+}
+
+html[data-glass-bg="on"] [class*="_previewBadge"] {
+  background: rgba(245, 250, 255, 0.55);
+  border: 1px solid rgba(180, 210, 235, 0.30);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: rgba(45, 85, 160, 0.92);
+}
+
+/* 工作区选择器 */
+html[data-glass-bg="on"] [class*="_workspaceSelect"],
+html[data-glass-bg="on"] [class*="_modeSelect"] {
+  color: rgba(35, 65, 125, 0.88);
+  transition: background 0.2s ease;
+}
+html[data-glass-bg="on"] [class*="_workspaceSelect"]:hover,
+html[data-glass-bg="on"] [class*="_modeSelect"]:hover {
+  background: rgba(180, 210, 235, 0.12);
+  border-radius: 8px;
+}
+
+/* hero 光晕保持自然 */
+html[data-glass-bg="on"] [class*="_heroGlow"] {
+  opacity: 0.7;
+}
+
+/* ============================================================
+ * 4. 输入框（composer）— 唯一需要毛玻璃的 UI 控件
+ * ==========================================================*/
+/* 输入框 — 轻量毛玻璃 + GPU 加速 */
+html[data-glass-bg="on"] [class*="_card"]:not([class*="cardWorkspace"]) {
+  background: rgba(248, 252, 255, 0.78) !important;
+  border: 1px solid rgba(180, 210, 235, 0.35);
+  border-radius: 20px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 4px 20px rgba(45, 85, 160, 0.10);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
+}
+html[data-glass-bg="on"] [class*="_card"]:not([class*="cardWorkspace"]):focus-within {
+  background: rgba(250, 253, 255, 0.88) !important;
+  box-shadow: 0 6px 28px rgba(45, 85, 160, 0.14);
+}
+
+/* 发送按钮：三态变化 */
+html[data-glass-bg="on"] [class*="_primary"] {
+  border-radius: 999px !important;
+  background: rgba(45, 85, 160, 0.55) !important;
+  box-shadow: 0 2px 8px rgba(45, 85, 160, 0.18);
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+html[data-glass-bg="on"] [class*="_primary"]:hover:not(:disabled) {
+  background: rgba(55, 95, 170, 0.90) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(45, 85, 160, 0.32);
+}
+html[data-glass-bg="on"] [class*="_primary"]:active:not(:disabled) {
+  transform: scale(0.96);
+}
+html[data-glass-bg="on"] [class*="_primary"]:disabled {
+  background: rgba(45, 85, 160, 0.25) !important;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* ============================================================
+ * 5. 通用浮层
+ * ==========================================================*/
+html[data-glass-bg="on"] :is(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="popover"],
+  [class*="popover" i],
+  [class*="dropdown" i],
+  [class*="modal" i]
+) {
+  background: rgba(245, 250, 255, 0.85) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(180, 210, 235, 0.35);
+  border-radius: var(--glass-radius, 16px);
+  box-shadow: 0 8px 30px rgba(45, 85, 160, 0.15);
+}
+
+/* ============================================================
+ * 6. 滚动条
+ * ==========================================================*/
+html[data-glass-bg="on"] *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+html[data-glass-bg="on"] *::-webkit-scrollbar-thumb {
+  background: rgba(160, 195, 225, 0.30);
+  border-radius: 6px;
+}
+html[data-glass-bg="on"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 195, 225, 0.50);
+}
+html[data-glass-bg="on"] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ============================================================
+ * 7. 低性能 / 减少动态
+ * ==========================================================*/
+html[data-glass-fx="low"] :is(
+  [class*="_sidebarCol"],
+  [class*="_card"],
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [class*="popover" i],
+  [class*="dropdown" i],
+  [class*="modal" i]
+) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-glass-fx="low"] * {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ============================================================
+ * 8. 背景关闭时恢复
+ * ==========================================================*/
+html[data-glass-bg="off"] body {
+  background: rgb(235, 245, 255);
+}
+
+/* ============================================================
+ * 9. onboarding 引导遮罩 — 去掉模糊与压暗, 让桌面左端图标/文字正常显示
+ * (前端自带的新手引导流程会对主界面加 blur(2px)+半透明黑遮罩;
+ *  stage 层的半透明深底也一并透明化, 避免侧边栏整体被压暗)
+ * ==========================================================*/
+html[data-glass-bg="on"] [class*="_onboardingMask"] {
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-glass-bg="on"] [class*="_onboardingStage"] {
+  background: transparent !important;
+}
+
+/* ============================================================
+ * 10. 设置弹窗 — 近不透明白底 + 加强遮罩 + 置顶
+ * (默认 rgba(245,250,255,0.85) 半透明, 背后大标题/搜索框会透出导致字体重叠;
+ *  同时去掉面板自身 backdrop-filter, 避免构成 fixed 后代的包含块;
+ *  v5: 显式 z-index 置顶, 确保设置面板盖过对话框)
+ * ==========================================================*/
+html[data-glass-bg="on"] [class*="VOzbGW_panel"] {
+  background: rgba(255, 255, 255, 1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 64px !important;
+  bottom: auto !important;
+  height: min(800px, calc(100vh - 88px)) !important;
+  transform: translateX(-50%) !important;
+  width: min(800px, calc(100vw - 48px)) !important;
+}
+html[data-glass-bg="on"] [class*="VOzbGW_mask"] {
+  background: rgba(236, 244, 253, 0.98) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  z-index: 2147483646 !important;
+  position: fixed !important;
+}
+
+/* ============================================================
+ * 11. 侧边栏 — 提高背景不透明度, 让图标/文字清晰不再发糊
+ * (默认 var(--dsw-specific-sidebar-fill) 为深色半透明 rgba(15,25,45,0.72),
+ *  背景图透过导致文字对比度低; 直接写浅色高不透明度覆盖变量)
+ * ==========================================================*/
+/* v6: 侧栏不透明度提升到 0.95, 消除背景图透出导致的文字模糊感 */
+html[data-glass-bg="on"] [class*="_sidebarCol"] {
+  background: rgba(235, 244, 253, 0.95) !important;
+}
+

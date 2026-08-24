@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek Harness</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(175deg, #dcecfb 0%, #eef6fe 48%, #f8fbff 100%);
+      user-select: none;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 中央卡片 — 比原参考图更小、更窄 */
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 20px;
+      box-shadow: 0 14px 44px rgba(58, 110, 190, 0.16);
+      padding: 30px 44px;
+    }
+
+    .whale {
+      width: 62px;
+      height: 62px;
+      background-image: url("./whale-blue.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      animation: breathe 1.8s ease-in-out infinite;
+      margin-bottom: 4px;
+    }
+
+    /* DeepSeek — 深蓝渐变，与下方 Harness 协调 */
+    .title {
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.1;
+      color: #1e3a8a;
+      -webkit-font-smoothing: antialiased;
+      text-shadow: none;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.46em;
+      color: #ffffff;
+      background: #1e3a8a;
+      margin-left: 0.46em;
+      line-height: 1.4;
+      padding: 2px 8px 2px 14px;
+      border-radius: 6px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: baseline;
+      margin-top: 13px;
+      color: #7d94ad;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+    }
+
+    .loading .dots {
+      display: inline-flex;
+      gap: 4px;
+      margin-left: 3px;
+    }
+
+    .loading .dots i {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #4a7ab5;
+      opacity: 0;
+      animation: dotFlow 1.2s ease-in-out infinite;
+    }
+
+    .loading .dots i:nth-child(1) { animation-delay: 0s; }
+    .loading .dots i:nth-child(2) { animation-delay: 0.2s; }
+    .loading .dots i:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotFlow {
+      0% { opacity: 0; transform: translateY(0); }
+      18% { opacity: 1; transform: translateY(-1px); }
+      60% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(0); }
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.72; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" aria-label="DeepSeek Harness is loading">
+    <div class="whale" aria-hidden="true"></div>
+    <div class="title">DeepSeek</div>
+    <div class="subtitle">HARNESS</div>
+    <div class="loading">Loading<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# ===== DeepSeek Harness - Git 忽略规则 =====
+# 依赖与构建产物（绿色版走微信分享，源码走 GitHub）
+node_modules/
+dist/
+
+# 敏感信息
+.env
+*.key
+*.pem
+
+# 旧方案残留 / 临时探针
+start-silent.vbs
+probe_*.js
+curtain_shots/
+
+# 个人运行数据与备份
+user-data/
+*.bak-*
+*.tar.gz
+.asar-work/
+
+# 系统与编辑器
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.log
