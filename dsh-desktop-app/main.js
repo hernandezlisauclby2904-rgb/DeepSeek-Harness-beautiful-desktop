@@ -171,26 +171,36 @@ function killProcessTree(child) {
  * （修复竞态: 已有进程在跑则直接返回，避免重复拉起多个后端）
  */
 /**
- * 解析 DSH 运行时入口（便携模式优先）
+ * 解析 DSH 运行时入口与 home（便携模式优先）
  * 完整版一体包：exe 同级携带 .dsh 运行时 → 解压到任意位置即可运行
  * 回退：用户主目录 ~/.dsh（传统安装方式）
+ *
+ * 注意：便携检测针对 install/ 下的真实入口（永远存在），
+ * 而不是 profiles/ 下的——后者由 DSH 启动时自愈（heal）用 junction 重建。
+ * @returns {{bin: string, home: string|null}} bin=入口文件, home=DSH_HOME（便携模式）或 null（默认主目录）
  */
 function resolveDshBin() {
-  // 便携模式：exe 同级 .dsh
+  // 便携模式：exe 同级 .dsh（install 真实入口）
   const exeDir = path.dirname(process.execPath);
-  const portableBin = path.join(exeDir, '.dsh', 'profiles', 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
-  if (fs.existsSync(portableBin)) return portableBin;
+  const portableRoot = path.join(exeDir, '.dsh');
+  const portableBin = path.join(portableRoot, 'install', 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
+  if (fs.existsSync(portableBin)) {
+    return { bin: portableBin, home: portableRoot };
+  }
   // 传统模式：用户主目录 .dsh
-  return path.join(
-    app.getPath('home'),
-    '.dsh',
-    'profiles',
-    'node_modules',
-    '@deepseek-ai',
-    'dsh',
-    'lib',
-    'bin.js'
-  );
+  return {
+    bin: path.join(
+      app.getPath('home'),
+      '.dsh',
+      'profiles',
+      'node_modules',
+      '@deepseek-ai',
+      'dsh',
+      'lib',
+      'bin.js'
+    ),
+    home: null
+  };
 }
 
 function startDSHService() {
@@ -200,7 +210,7 @@ function startDSHService() {
   }
 
   const nodePath = findNodePath();
-  const dshBin = resolveDshBin();
+  const { bin: dshBin, home: dshHome } = resolveDshBin();
 
   // 验证 dsh 入口文件是否存在
   if (!fs.existsSync(dshBin)) {
@@ -213,9 +223,16 @@ function startDSHService() {
   console.log('DSH bin:', dshBin);
 
   dshStarted = true;
+  // 便携模式：向 DSH 传递 DSH_HOME 指向 exe 同级 .dsh；传统模式不设置（默认 ~/.dsh）
+  const env = { ...process.env };
+  if (dshHome) {
+    env.DSH_HOME = dshHome;
+    console.log('DSH_HOME (portable):', dshHome);
+  }
   const proc = spawn(nodePath, [dshBin, 'web'], {
     stdio: 'pipe',
-    detached: false
+    detached: false,
+    env
   });
   dshProcess = proc;
 
