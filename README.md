@@ -27,6 +27,26 @@
 └── dsh-desktop-app-share.tar.gz  # 纯源码分享包（29 文件，排除 node_modules/dist）
 ```
 
+## ⬇️ 下载
+
+### 完整版一体包（推荐 · 解压即用）
+
+> 📥 **[DeepSeek-Harness-Complete.tar.gz（Release 附件）](#)** — 约 500MB 压缩包，内含：
+> - Electron 壳（DeepSeek Harness.exe）+ 完整 DSH 运行时（含全部插件：玻璃主题 / 桌宠 / 大肥鱼等）
+> - **已排除个人数据**：无 API 密钥、无会话记录、无 user-data，首次启动自行配置
+>
+> **使用方法**：
+> 1. 下载并解压（建议用 7-Zip / WinRAR 解压 .tar.gz）
+> 2. 双击 `DeepSeek Harness.exe`
+> 3. 首次启动配置 API Key 即可使用
+>
+> *便携模式：运行时跟随 exe 同级 `.dsh` 目录，解压到任意位置（U盘/移动硬盘）均可运行，不写入用户主目录。*
+
+### 源码版
+
+- `dsh-desktop-app/` — 源码，需 Node.js >= 18 自行构建（见下）
+- `dsh-desktop-app-share.tar.gz` — 纯源码分享包
+
 ## 🚀 快速开始
 
 ```bash

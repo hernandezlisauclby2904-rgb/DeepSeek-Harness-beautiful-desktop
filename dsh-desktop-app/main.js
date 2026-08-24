@@ -170,14 +170,18 @@ function killProcessTree(child) {
  * 启动 DeepSeek Harness Web 服务
  * （修复竞态: 已有进程在跑则直接返回，避免重复拉起多个后端）
  */
-function startDSHService() {
-  if (dshProcess) {
-    console.log('DSH service already starting/running, skip duplicate start');
-    return true;
-  }
-
-  const nodePath = findNodePath();
-  const dshBin = path.join(
+/**
+ * 解析 DSH 运行时入口（便携模式优先）
+ * 完整版一体包：exe 同级携带 .dsh 运行时 → 解压到任意位置即可运行
+ * 回退：用户主目录 ~/.dsh（传统安装方式）
+ */
+function resolveDshBin() {
+  // 便携模式：exe 同级 .dsh
+  const exeDir = path.dirname(process.execPath);
+  const portableBin = path.join(exeDir, '.dsh', 'profiles', 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
+  if (fs.existsSync(portableBin)) return portableBin;
+  // 传统模式：用户主目录 .dsh
+  return path.join(
     app.getPath('home'),
     '.dsh',
     'profiles',
@@ -187,6 +191,16 @@ function startDSHService() {
     'lib',
     'bin.js'
   );
+}
+
+function startDSHService() {
+  if (dshProcess) {
+    console.log('DSH service already starting/running, skip duplicate start');
+    return true;
+  }
+
+  const nodePath = findNodePath();
+  const dshBin = resolveDshBin();
 
   // 验证 dsh 入口文件是否存在
   if (!fs.existsSync(dshBin)) {
