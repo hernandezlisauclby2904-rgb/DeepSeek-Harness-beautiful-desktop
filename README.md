@@ -31,7 +31,7 @@
 
 ### 完整版一体包（推荐 · 解压即用）
 
-> 📥 **[DeepSeek-Harness-Complete.tar.gz（Release 附件）](#)** — 约 500MB 压缩包，内含：
+> 📥 **[DeepSeek-Harness-Complete.tar.gz（Release 附件）](https://github.com/hernandezlisauclby2904-rgb/DeepSeek-Harness-beautiful-desktop/releases/latest/download/DeepSeek-Harness-Complete.tar.gz)** — 约 280MB 压缩包，内含：
 > - Electron 壳（DeepSeek Harness.exe）+ 完整 DSH 运行时（含全部插件：玻璃主题 / 桌宠 / 大肥鱼等）
 > - **已排除个人数据**：无 API 密钥、无会话记录、无 user-data，首次启动自行配置
 >
