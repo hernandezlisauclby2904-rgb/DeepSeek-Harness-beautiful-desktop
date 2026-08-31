@@ -62,6 +62,7 @@ try {
 let mainWindow = null;
 let dshProcess = null;
 let dshStarted = false; // 标记是否由本进程启动
+let splashWindow = null; // 冷启动等待期的加载窗口
 // 内置插件选择向导窗口状态
 let wizardWindow = null;
 let wizardMode = 'first';
@@ -674,6 +675,36 @@ function pluginManagerSetEnabledImpl(id, enabled) {
   }
 }
 
+/** 冷启动时先显示本地加载页，DSH 就绪后由 startApp 关闭 */
+function createSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) return;
+  splashWindow = new BrowserWindow({
+    width: 460,
+    height: 300,
+    frame: false,
+    resizable: false,
+    show: false,
+    alwaysOnTop: false,
+    backgroundColor: '#eef6fe',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      spellcheck: false
+    }
+  });
+  splashWindow.loadFile(path.join(__dirname, 'resources', 'startup-splash.html'));
+  splashWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.show();
+  });
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+function closeSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
+  splashWindow = null;
+}
+
 /**
  * 应用启动流程（提取为函数，供 bootstrap 与 macOS activate 复用）
  */
@@ -681,6 +712,7 @@ async function startApp() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow();
   }
+  createSplash();
 
   // 检查服务是否已在运行
   const isRunning = await checkPort(DSH_HOST, DSH_PORT);
@@ -690,12 +722,14 @@ async function startApp() {
     if (!started) {
       console.error('Cannot start DSH service - DSH binary not found');
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+      closeSplash();
       return;
     }
     const ready = await waitForService(DSH_HOST, DSH_PORT);
     if (!ready) {
       console.error('Failed to start DSH service within timeout');
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+      closeSplash();
       return;
     }
   } else {
@@ -708,6 +742,7 @@ async function startApp() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.show();
   }
+  closeSplash();
   console.log(success ? 'Main page loaded' : 'Main page load failed');
 }
 
@@ -734,6 +769,7 @@ if (!gotLock) {
 
 app.on('window-all-closed', () => {
   console.log('All windows closed');
+  closeSplash();
   dshStarted = false;
   if (dshProcess) {
     console.log('Stopping DSH service...');
@@ -754,6 +790,7 @@ app.on('activate', () => {
 
 // 优雅退出
 app.on('before-quit', () => {
+  closeSplash();
   dshStarted = false;
   if (dshProcess) {
     console.log('Stopping DSH service on quit...');
